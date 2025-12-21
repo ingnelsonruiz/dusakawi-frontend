@@ -2,59 +2,261 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Dusakawi - Test de Conexión</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dusakawi Auditor Pro | Resolución 4505</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        :root {
+            --primary: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--bg);
+            color: #1e293b;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .dropzone-active {
+            border-color: var(--primary);
+            background-color: #eff6ff;
+            transform: scale(1.01);
+        }
+
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .animate-pulse-soft { animation: pulse-soft 2s infinite; }
+    </style>
 </head>
-<body class="bg-slate-100 flex items-center justify-center h-screen">
+<body class="min-h-screen p-4 md:p-8">
 
-    <div class="bg-white p-10 rounded-[3rem] shadow-xl border border-slate-200 text-center max-w-md">
-        <h1 class="text-xl font-black text-slate-800 mb-4">Estado del Backend</h1>
-        
-        <div id="luz" class="w-12 h-12 rounded-full bg-slate-300 mx-auto mb-6 border-4 border-white shadow-inner"></div>
-        
-        <p id="info" class="text-slate-500 text-sm font-medium mb-6">Conectando con api-ejecutor-python.onrender.com...</p>
-        
-        <button onclick="probar()" class="bg-blue-600 text-white px-8 py-3 rounded-2xl font-black hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">
-            REINTENTAR
-        </button>
+    <div class="max-w-6xl mx-auto">
+        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10">
+            <div>
+                <div class="flex items-center gap-3 mb-1">
+                    <div class="bg-blue-600 text-white p-2 rounded-xl shadow-lg shadow-blue-200">
+                        <i class="fa-solid fa-microscope text-xl"></i>
+                    </div>
+                    <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">
+                        DUSAKAWI <span class="text-blue-600 italic">AUDITOR</span>
+                    </h1>
+                </div>
+                <p class="text-slate-500 font-semibold text-xs uppercase tracking-[0.15em] ml-11">
+                    Validación Técnica de 125 Columnas
+                </p>
+            </div>
 
-        <div id="debug" class="mt-6 text-[10px] text-left bg-slate-50 p-4 rounded-xl font-mono text-slate-400 hidden"></div>
+            <div id="statusPill" class="flex items-center gap-3 bg-white px-5 py-2.5 rounded-2xl shadow-sm border border-slate-200 w-fit">
+                <div id="statusDot" class="w-2.5 h-2.5 bg-slate-300 rounded-full"></div>
+                <span id="statusText" class="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">Verificando Backend...</span>
+            </div>
+        </header>
+
+        <div id="dashboard" class="hidden grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
+                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Total Registros</p>
+                <p id="statTotal" class="text-3xl font-black text-slate-800">0</p>
+            </div>
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm">
+                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Columnas Detectadas</p>
+                <p id="statCols" class="text-3xl font-black text-blue-600">0</p>
+            </div>
+            <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm border-l-4 border-l-red-500">
+                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Pacientes con Hallazgos</p>
+                <p id="statErrs" class="text-3xl font-black text-red-500">0</p>
+            </div>
+            <button onclick="exportarErrores()" class="bg-slate-900 hover:bg-green-600 text-white p-6 rounded-[2rem] transition-all flex flex-col items-center justify-center gap-1 group">
+                <i class="fa-solid fa-file-excel text-2xl group-hover:scale-110 transition-transform"></i>
+                <span class="text-[10px] font-bold uppercase tracking-widest">Descargar Informe</span>
+            </button>
+        </div>
+
+        <div id="dropZone" 
+             class="bg-white border-4 border-dashed border-slate-200 rounded-[3.5rem] p-16 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-all group mb-10">
+            <input type="file" id="fileInput" class="hidden" accept=".csv">
+            
+            <div class="bg-slate-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-blue-100 transition-colors">
+                <i class="fa-solid fa-cloud-arrow-up text-4xl text-slate-300 group-hover:text-blue-500 transition-all"></i>
+            </div>
+            
+            <h2 class="text-2xl font-extrabold text-slate-800 mb-2">Arrastra tu reporte CSV aquí</h2>
+            <p class="text-slate-400 max-w-sm mx-auto text-sm font-medium leading-relaxed">
+                El motor auditará automáticamente las 125 columnas bajo la norma técnica institucional.
+            </p>
+        </div>
+
+        <div id="loader" class="hidden py-20 text-center">
+            <div class="relative inline-block">
+                <div class="w-16 h-16 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+                <i class="fa-solid fa-bolt-lightning absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600"></i>
+            </div>
+            <h3 class="mt-6 font-black text-slate-800 uppercase tracking-[0.2em] text-sm">Ejecutando Auditoría...</h3>
+            <p class="text-slate-400 text-xs mt-2">Validando consistencia de datos e IMC</p>
+        </div>
+
+        <div id="resultsContainer" class="space-y-6"></div>
     </div>
 
     <script>
         const API_URL = "https://api-ejecutor-python.onrender.com";
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        let logsParaExportar = [];
 
-        async function probar() {
-            const luz = document.getElementById('luz');
-            const info = document.getElementById('info');
-            const debug = document.getElementById('debug');
-            
-            luz.className = "w-12 h-12 rounded-full bg-yellow-400 mx-auto mb-6 animate-pulse";
-            info.innerText = "Esperando respuesta de Render...";
-
+        // 1. Verificación Inicial de Conexión
+        async function init() {
             try {
-                // Probamos la ruta de salud que definimos en Python
                 const res = await fetch(`${API_URL}/health`);
-                
-                if (res.ok) {
-                    const data = await res.json();
-                    luz.className = "w-12 h-12 rounded-full bg-green-500 mx-auto mb-6 shadow-[0_0_15px_rgba(34,197,94,0.5)]";
-                    info.innerHTML = "<span class='text-green-600 font-bold text-lg'>¡CONECTADO!</span><br>El servidor está encendido.";
-                    debug.classList.remove('hidden');
-                    debug.innerText = "Respuesta: " + JSON.stringify(data);
-                } else {
-                    throw new Error("El servidor respondió con error " + res.status);
+                if(res.ok) {
+                    document.getElementById('statusDot').className = "w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_8px_#10b981]";
+                    document.getElementById('statusText').innerText = "Sistema Online";
+                    document.getElementById('statusText').classList.replace('text-slate-500', 'text-emerald-600');
                 }
-            } catch (err) {
-                luz.className = "w-12 h-12 rounded-full bg-red-500 mx-auto mb-6 shadow-[0_0_15px_rgba(239,68,68,0.5)]";
-                info.innerHTML = "<span class='text-red-600 font-bold text-lg'>SIN CONEXIÓN</span><br>El servidor no responde.";
-                debug.classList.remove('hidden');
-                debug.innerText = "Error: " + err.message + "\n\nPosibles causas:\n1. El servidor sigue cargando.\n2. Falta configurar CORS en Python.";
+            } catch (e) {
+                document.getElementById('statusText').innerText = "Backend en reposo...";
+                setTimeout(init, 5000);
             }
         }
 
-        // Ejecutar al abrir la página
-        probar();
+        // 2. Lógica de Carga
+        dropZone.onclick = () => fileInput.click();
+
+        fileInput.onchange = async (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            // Reset UI
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('dropZone').classList.add('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('resultsContainer').innerHTML = "";
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`${API_URL}/validar`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || "Error al procesar archivo");
+                }
+
+                mostrarResultados(data);
+
+            } catch (err) {
+                alert("⚠️ Error: " + err.message);
+                document.getElementById('dropZone').classList.remove('hidden');
+            } finally {
+                document.getElementById('loader').classList.add('hidden');
+                fileInput.value = ""; // Limpiar input
+            }
+        };
+
+        function mostrarResultados(data) {
+            // Actualizar Dashboard
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('statTotal').innerText = data.resumen.total_filas;
+            document.getElementById('statCols').innerText = data.resumen.columnas_leidas;
+            document.getElementById('statErrs').innerText = data.resumen.errores_encontrados;
+
+            logsParaExportar = data.detalles;
+
+            // Renderizar Tarjetas de Pacientes
+            const container = document.getElementById('resultsContainer');
+            
+            if(data.detalles.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 bg-emerald-50 rounded-[3rem] border border-emerald-100">
+                        <i class="fa-solid fa-circle-check text-5xl text-emerald-500 mb-4"></i>
+                        <h3 class="text-xl font-bold text-emerald-800">¡Archivo Perfecto!</h3>
+                        <p class="text-emerald-600/70">No se encontraron inconsistencias en las 125 columnas.</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = data.detalles.map(paciente => `
+                <div class="bg-white rounded-[2.5rem] border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                    <div class="bg-slate-50 px-8 py-5 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="bg-white w-10 h-10 rounded-full flex items-center justify-center text-slate-400 border border-slate-200">
+                                <i class="fa-solid fa-user text-xs"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Identificación</p>
+                                <p class="font-black text-slate-800 tracking-tight">${paciente.identificacion}</p>
+                            </div>
+                        </div>
+                        <div class="bg-blue-600 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                            Fila Excel: ${paciente.fila}
+                        </div>
+                    </div>
+                    
+                    <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${paciente.errores.map(error => `
+                            <div class="bg-slate-50/50 p-5 rounded-[1.5rem] border border-slate-100 relative overflow-hidden group">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-red-400"></div>
+                                <p class="text-[9px] font-black text-red-500 uppercase tracking-[0.2em] mb-1">${error.columna}</p>
+                                <p class="text-sm font-bold text-slate-700 mb-3">${error.mensaje}</p>
+                                <div class="flex flex-col gap-2">
+                                    <div class="flex items-center gap-2 text-[11px]">
+                                        <span class="text-slate-400 font-bold">VALOR:</span>
+                                        <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-md font-mono font-bold italic">"${error.valor}"</span>
+                                    </div>
+                                    <div class="flex items-start gap-2 text-[11px] bg-white p-2.5 rounded-xl border border-slate-100 shadow-sm">
+                                        <i class="fa-solid fa-lightbulb text-amber-500 mt-0.5"></i>
+                                        <span class="text-slate-600 font-medium italic">${error.sugerencia}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function exportarErrores() {
+            if(logsParaExportar.length === 0) return;
+            
+            const rows = [];
+            logsParaExportar.forEach(p => {
+                p.errores.forEach(e => {
+                    rows.push({
+                        "FILA EXCEL": p.fila,
+                        "IDENTIFICACIÓN": p.identificacion,
+                        "COLUMNA CON ERROR": e.columna,
+                        "VALOR ENCONTRADO": e.valor,
+                        "DESCRIPCIÓN DEL ERROR": e.mensaje,
+                        "ACCIÓN RECOMENDADA": e.sugerencia
+                    });
+                });
+            });
+
+            const ws = XLSX.utils.json_to_sheet(rows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Errores_Detectados");
+            XLSX.writeFile(wb, `Auditoria_Dusakawi_${new Date().getTime()}.xlsx`);
+        }
+
+        init();
     </script>
 </body>
 </html>
