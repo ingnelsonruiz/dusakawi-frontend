@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dusakawi | Validador Pro</title>
+    <title>Dusakawi Engine | Validador Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
         .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
         .led-blink { animation: blink 1.5s infinite; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
@@ -20,17 +22,17 @@
         <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
             <div>
                 <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight italic">DUSAKAWI <span class="text-blue-600 font-normal">ENGINE</span></h1>
-                <p class="text-slate-500">Módulo de Integridad de Datos Cardiovascular (125 Columnas)</p>
+                <p class="text-slate-500 font-medium">Módulo de Integridad de Datos Cardiovascular (125 Columnas)</p>
             </div>
             
-            <div id="apiStatusCard" class="flex items-center gap-4 px-6 py-4 bg-white rounded-3xl shadow-sm border border-slate-100 min-w-[280px]">
+            <div id="apiStatusCard" class="flex items-center gap-4 px-6 py-4 bg-white rounded-3xl shadow-sm border border-slate-100 min-w-[300px]">
                 <div class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors bg-slate-200" id="switchBg">
                     <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1 shadow-md" id="switchDot"></span>
                 </div>
                 <div class="flex flex-col">
                     <div class="flex items-center gap-2">
-                        <span id="led" class="w-3 h-3 bg-amber-500 rounded-full led-blink"></span>
-                        <span id="statusLabel" class="text-xs font-black uppercase tracking-widest text-slate-400">Verificando...</span>
+                        <span id="ledStatus" class="w-3 h-3 bg-amber-500 rounded-full led-blink"></span>
+                        <span id="statusLabel" class="text-xs font-black uppercase tracking-widest text-slate-400">Verificando API...</span>
                     </div>
                     <span id="statusSubtext" class="text-sm font-medium text-slate-600 italic">Esperando conexión</span>
                 </div>
@@ -40,129 +42,162 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             <div class="glass p-6 rounded-3xl border border-white shadow-xl flex flex-col items-center">
                 <canvas id="qualityChart" width="150" height="150"></canvas>
-                <h2 id="qualityScore" class="text-3xl font-black mt-4 text-blue-600">0%</h2>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-tighter">Calidad del Archivo</p>
+                <h2 id="qualityScore" class="text-4xl font-black mt-4 text-blue-600">0%</h2>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Calidad del Archivo</p>
             </div>
             <div class="flex flex-col gap-4">
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                    <p class="text-xs font-bold text-slate-400 uppercase">Leídos</p>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Registros Procesados</p>
                     <h3 id="totalRows" class="text-3xl font-bold">0</h3>
                 </div>
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                    <p class="text-xs font-bold text-red-400 uppercase">Inconsistencias</p>
+                    <p class="text-xs font-bold text-red-400 uppercase tracking-wider">Inconsistencias Detectadas</p>
                     <h3 id="totalErrors" class="text-3xl font-bold text-red-600">0</h3>
                 </div>
             </div>
-            <div class="flex flex-col justify-center gap-4">
-                <button onclick="exportErrors()" id="btnExport" disabled class="bg-slate-900 text-white p-6 rounded-3xl font-bold hover:bg-blue-600 transition-all opacity-20 cursor-not-allowed">
-                    <i class="fa-solid fa-download mr-2"></i> Exportar Informe
+            <div class="flex flex-col justify-center">
+                <button onclick="exportToExcel()" id="btnExport" disabled class="bg-slate-900 text-white p-6 rounded-3xl font-bold hover:bg-blue-600 transition-all opacity-20 cursor-not-allowed shadow-xl flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-file-excel text-xl"></i> Exportar Informe de Errores
                 </button>
             </div>
         </div>
 
-        <div id="dropZone" class="opacity-30 pointer-events-none transition-all duration-500 bg-white border-2 border-dashed border-slate-200 rounded-3xl p-16 text-center mb-10 group hover:border-blue-400">
+        <div class="mb-10">
+            <button onclick="toggleDictionary()" class="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-bold transition-all bg-blue-50 px-4 py-2 rounded-full text-sm">
+                <i class="fa-solid fa-book-medical"></i> Ver Diccionario de Reglas y Estándares
+            </button>
+            
+            <div id="ruleDictionary" class="hidden mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in">
+                <div class="bg-white p-5 rounded-2xl border border-blue-50">
+                    <h4 class="font-bold text-blue-600 text-xs mb-2 uppercase">Tipo ID</h4>
+                    <p class="text-[11px] text-slate-500 leading-relaxed">Permitidos: CC, MS, RC, TI, PA, CD, AS, PT, CE, PE, PS, SC.</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-blue-50">
+                    <h4 class="font-bold text-blue-600 text-xs mb-2 uppercase">Formato Fechas</h4>
+                    <p class="text-[11px] text-slate-500 leading-relaxed italic">AAAA/MM/DD (Obligatorio). Se revisan todas las columnas que contengan 'FECHA'.</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-blue-50">
+                    <h4 class="font-bold text-blue-600 text-xs mb-2 uppercase">Sexo</h4>
+                    <p class="text-[11px] text-slate-500 leading-relaxed">Valores aceptados: M (Masculino) o F (Femenino).</p>
+                </div>
+                <div class="bg-white p-5 rounded-2xl border border-red-100 bg-red-50/30">
+                    <h4 class="font-bold text-red-600 text-xs mb-2 uppercase text-center underline">Importante</h4>
+                    <p class="text-[11px] text-slate-600 leading-relaxed font-semibold">El archivo DEBE incluir la fila de encabezados para identificar las 125 columnas.</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="dropZone" class="opacity-30 pointer-events-none transition-all duration-700 bg-white border-2 border-dashed border-slate-200 rounded-[2rem] p-16 text-center mb-10 group hover:border-blue-400 hover:shadow-2xl">
             <input type="file" id="fileInput" class="hidden" accept=".csv">
-            <i class="fa-solid fa-cloud-arrow-up text-5xl text-blue-600 mb-4 group-hover:scale-110 transition-transform"></i>
-            <h3 class="text-xl font-bold">Cargar Reporte Mensual</h3>
-            <p class="text-slate-400 mt-2">Arrastre aquí el archivo CSV (Latin-1/UTF-8)</p>
+            <div class="w-24 h-24 bg-blue-50 rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                <i class="fa-solid fa-cloud-arrow-up text-4xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-slate-700">Cargar Reporte Mensual</h3>
+            <p class="text-slate-400 mt-2 font-medium">Arrastre aquí el reporte del prestador o haga clic para buscar</p>
         </div>
 
         <div id="resultsArea" class="hidden">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold">Detalle de Hallazgos</h3>
-                <input type="text" id="searchInput" placeholder="Buscar por identificación..." class="px-6 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-100 transition-all w-80">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+                <h3 class="text-xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-blue-600"></i> Detalle de Hallazgos
+                </h3>
+                <div class="relative w-full md:w-96">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="searchInput" placeholder="Filtrar por identificación de paciente..." class="w-full pl-12 pr-4 py-3 rounded-2xl border border-slate-200 focus:ring-4 focus:ring-blue-100 transition-all outline-none">
+                </div>
             </div>
-            <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+            <div class="bg-white rounded-[2rem] shadow-2xl border border-slate-100 overflow-hidden">
                 <table class="w-full text-left">
-                    <thead class="bg-slate-900 text-white text-xs uppercase italic tracking-widest">
+                    <thead class="bg-slate-900 text-white text-xs uppercase tracking-widest font-bold">
                         <tr>
                             <th class="p-6">Fila</th>
-                            <th class="p-6">Identificación</th>
-                            <th class="p-6">Inconsistencias</th>
+                            <th class="p-6 text-center">Identificación</th>
+                            <th class="p-6">Inconsistencias Reportadas</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody" class="divide-y divide-slate-100"></tbody>
+                    <tbody id="tableBody" class="divide-y divide-slate-100">
+                        </tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <div id="loader" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex flex-col items-center justify-center text-white">
-        <div class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="font-bold text-xl">Analizando integridad de datos...</p>
+    <div id="loader" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-xl z-50 flex flex-col items-center justify-center text-white">
+        <div class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-6"></div>
+        <p class="font-bold text-2xl tracking-tight">Analizando 125 columnas...</p>
+        <p class="text-blue-300 text-sm mt-2 italic">Verificando cumplimiento de norma técnica</p>
     </div>
 
     <script>
-        const API_URL = "https://api-ejecutor-python.onrender.com"; // Sin /validar aquí
-        let fullData = [];
-        let chart = null;
+        const API_BASE = "https://api-ejecutor-python.onrender.com";
+        let globalData = [];
+        let qualityChart = null;
 
-        // --- Lógica del Semáforo ---
-        async function checkApi() {
+        // --- MONITOR DE API (SEMÁFORO) ---
+        async function checkApiHealth() {
             try {
-                const response = await fetch(`${API_URL}/health`);
+                const response = await fetch(`${API_BASE}/health`);
                 if (response.ok) {
-                    setApiState(true);
+                    setApiUI(true);
                 } else {
-                    setApiState(false);
-                    setTimeout(checkApi, 5000);
+                    setApiUI(false);
+                    setTimeout(checkApiHealth, 5000);
                 }
             } catch {
-                setApiState(false);
-                setTimeout(checkApi, 5000);
+                setApiUI(false);
+                setTimeout(checkApiHealth, 5000);
             }
         }
 
-        function setApiState(isOnline) {
-            const led = document.getElementById('led');
-            const statusLabel = document.getElementById('statusLabel');
-            const subtext = document.getElementById('statusSubtext');
-            const sBg = document.getElementById('switchBg');
-            const sDot = document.getElementById('switchDot');
+        function setApiUI(isReady) {
+            const led = document.getElementById('ledStatus');
+            const label = document.getElementById('statusLabel');
+            const sub = document.getElementById('statusSubtext');
+            const bg = document.getElementById('switchBg');
+            const dot = document.getElementById('switchDot');
             const drop = document.getElementById('dropZone');
 
-            if (isOnline) {
+            if (isReady) {
                 led.className = "w-3 h-3 bg-green-500 rounded-full shadow-[0_0_12px_#22c55e]";
-                statusLabel.innerText = "API ONLINE";
-                statusLabel.className = "text-xs font-black uppercase tracking-widest text-green-600";
-                subtext.innerText = "Motor listo para procesar";
-                sBg.className = "relative inline-flex h-6 w-11 items-center rounded-full transition-colors bg-green-500";
-                sDot.className = "inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6 shadow-md";
-                drop.className = "bg-white border-2 border-dashed border-blue-200 rounded-3xl p-16 text-center mb-10 group hover:border-blue-400 cursor-pointer shadow-sm opacity-100";
-                drop.style.pointerEvents = "auto";
+                label.innerText = "API ONLINE";
+                label.className = "text-xs font-black uppercase tracking-widest text-green-600";
+                sub.innerText = "Motor listo para procesar datos";
+                bg.classList.replace('bg-slate-200', 'bg-green-500');
+                dot.classList.replace('translate-x-1', 'translate-x-6');
+                drop.classList.remove('opacity-30', 'pointer-events-none');
+                drop.classList.add('cursor-pointer', 'shadow-sm');
             } else {
                 led.className = "w-3 h-3 bg-amber-500 rounded-full led-blink";
-                statusLabel.innerText = "DESPERTANDO...";
-                subtext.innerText = "Render está iniciando el motor";
-                drop.style.pointerEvents = "none";
+                label.innerText = "DESPERTANDO...";
+                sub.innerText = "Iniciando motor en Render (30 seg)";
             }
         }
 
-        // --- Lógica de Procesamiento ---
+        // --- MANEJO DE ARCHIVOS ---
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         dropZone.onclick = () => fileInput.click();
-        fileInput.onchange = (e) => handleFile(e.target.files[0]);
+        fileInput.onchange = (e) => processUpload(e.target.files[0]);
 
-        async function handleFile(file) {
+        async function processUpload(file) {
             if (!file) return;
             document.getElementById('loader').classList.remove('hidden');
             const formData = new FormData();
             formData.append('file', file);
 
             try {
-                const res = await fetch(`${API_URL}/validar`, { method: 'POST', body: formData });
+                const res = await fetch(`${API_BASE}/validar`, { method: 'POST', body: formData });
                 const data = await res.json();
-                renderUI(data);
+                updateDashboard(data);
             } catch (err) {
-                alert("Error crítico: El motor se apagó. Espere el semáforo verde.");
+                alert("Error crítico: Se perdió la conexión con el servidor.");
             } finally {
                 document.getElementById('loader').classList.add('hidden');
             }
         }
 
-        function renderUI(data) {
-            fullData = data.detalles;
+        function updateDashboard(data) {
+            globalData = data.detalles;
             document.getElementById('resultsArea').classList.remove('hidden');
             document.getElementById('totalRows').innerText = data.registros_leidos;
             document.getElementById('totalErrors').innerText = data.registros_con_error;
@@ -170,43 +205,75 @@
             const score = ((data.registros_leidos - data.registros_con_error) / data.registros_leidos * 100).toFixed(1);
             document.getElementById('qualityScore').innerText = score + "%";
             
-            // Habilitar exportación
+            // Activar botón exportar
             const btn = document.getElementById('btnExport');
             btn.disabled = false;
-            btn.className = "bg-slate-900 text-white p-6 rounded-3xl font-bold hover:bg-blue-600 transition-all shadow-lg shadow-slate-200";
+            btn.className = "bg-slate-900 text-white p-6 rounded-3xl font-bold hover:bg-green-600 hover:scale-105 transition-all shadow-xl flex items-center justify-center gap-3 cursor-pointer opacity-100";
 
-            updateChart(data.registros_leidos - data.registros_con_error, data.registros_con_error);
-            showTable(fullData);
+            renderChart(data.registros_leidos - data.registros_con_error, data.registros_con_error);
+            renderTable(globalData);
         }
 
-        function showTable(items) {
-            const body = document.getElementById('tableBody');
-            body.innerHTML = items.map(i => `
-                <tr class="hover:bg-blue-50/50 transition-colors">
-                    <td class="p-6 text-slate-400 font-mono text-xs">FILA ${i.fila}</td>
-                    <td class="p-6 font-bold text-slate-700">${i.identificacion}</td>
-                    <td class="p-6 italic text-sm text-red-600">${i.errores.join("<br>")}</td>
+        function renderTable(rows) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = rows.map(r => `
+                <tr class="hover:bg-blue-50/50 transition-all border-l-4 ${r.errores.length > 2 ? 'border-l-red-500' : 'border-l-amber-400'}">
+                    <td class="p-6 font-mono text-slate-400 text-xs">FILA ${r.fila}</td>
+                    <td class="p-6 font-bold text-slate-800 text-center">${r.identificacion}</td>
+                    <td class="p-6">
+                        <ul class="space-y-1">
+                            ${r.errores.map(err => `
+                                <li class="text-sm text-red-700 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 flex items-start gap-2">
+                                    <i class="fa-solid fa-circle-exclamation mt-1"></i> <span>${err}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </td>
                 </tr>
             `).join('');
         }
 
-        function updateChart(ok, bad) {
-            if(chart) chart.destroy();
-            chart = new Chart(document.getElementById('qualityChart'), {
+        function renderChart(ok, bad) {
+            const ctx = document.getElementById('qualityChart').getContext('2d');
+            if (qualityChart) qualityChart.destroy();
+            qualityChart = new Chart(ctx, {
                 type: 'doughnut',
-                data: { datasets: [{ data: [ok, bad], backgroundColor: ['#3b82f6', '#ef4444'], borderWidth: 0 }] },
-                options: { cutout: '80%', plugins: { legend: { display: false } } }
+                data: {
+                    datasets: [{
+                        data: [ok, bad],
+                        backgroundColor: ['#3b82f6', '#ef4444'],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: { cutout: '82%', plugins: { legend: { display: false } } }
             });
         }
 
-        function exportErrors() {
-            const ws = XLSX.utils.json_to_sheet(fullData.map(i => ({ Fila: i.fila, ID: i.identificacion, Errores: i.errores.join(" | ") })));
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Hallazgos");
-            XLSX.writeFile(wb, "Reporte_Calidad_Dusakawi.xlsx");
+        function toggleDictionary() {
+            const dict = document.getElementById('ruleDictionary');
+            dict.classList.toggle('hidden');
         }
 
-        checkApi();
+        function exportToExcel() {
+            if (globalData.length === 0) return;
+            const worksheet = XLSX.utils.json_to_sheet(globalData.map(i => ({
+                "Fila Excel": i.fila,
+                "ID Paciente": i.identificacion,
+                "Errores Detectados": i.errores.join(" | ")
+            })));
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Inconsistencias");
+            XLSX.writeFile(workbook, "Dusakawi_Reporte_Inconsistencias.xlsx");
+        }
+
+        document.getElementById('searchInput').oninput = (e) => {
+            const val = e.target.value.toLowerCase();
+            renderTable(globalData.filter(i => i.identificacion.toString().toLowerCase().includes(val)));
+        };
+
+        // Iniciar monitoreo
+        checkApiHealth();
     </script>
 </body>
 </html>
