@@ -3,194 +3,210 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dusakawi Analytics | Pro Validator</title>
+    <title>Dusakawi | Validador Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-        .gradient-bg { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
-        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+        .led-blink { animation: blink 1.5s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
+<body class="bg-slate-50 min-h-screen text-slate-800">
 
-    <nav class="gradient-bg text-white p-4 shadow-lg">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="bg-blue-600 p-2 rounded-lg"><i class="fa-solid fa-shield-heart text-xl"></i></div>
-                <span class="text-xl font-bold tracking-tight">DUSAKAWI <span class="text-blue-400">ENGINE</span></span>
+    <div class="max-w-6xl mx-auto py-10 px-4">
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight italic">DUSAKAWI <span class="text-blue-600 font-normal">ENGINE</span></h1>
+                <p class="text-slate-500">Módulo de Integridad de Datos Cardiovascular (125 Columnas)</p>
             </div>
-            <div class="flex items-center gap-4 text-sm font-medium">
-                <span id="apiStatus" class="flex items-center gap-2"><span class="w-2 h-2 bg-green-400 rounded-full animate-ping"></span> Sistema Activo</span>
-            </div>
-        </div>
-    </nav>
-
-    <main class="max-w-7xl mx-auto py-8 px-4">
-        
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-            <div class="lg:col-span-2">
-                <h2 class="text-3xl font-extrabold text-slate-800 mb-2">Validador de Calidad de Datos</h2>
-                <p class="text-slate-500 mb-6">Analice la consistencia de sus 125 columnas de reporte cardiovascular y renal según norma técnica.</p>
-                
-                <div id="dropZone" class="group relative bg-white border-2 border-dashed border-blue-200 rounded-2xl p-12 text-center transition-all hover:border-blue-500 hover:bg-blue-50 cursor-pointer shadow-sm">
-                    <input type="file" id="fileInput" class="hidden" accept=".csv">
-                    <i class="fa-solid fa-file-csv text-5xl text-blue-600 mb-4 transition-transform group-hover:scale-110"></i>
-                    <p class="text-lg font-semibold text-slate-700">Arrastre el reporte del prestador aquí</p>
-                    <p class="text-sm text-slate-400 mt-1">El sistema detectará errores de formato, lógica y rango automáticamente.</p>
+            
+            <div id="apiStatusCard" class="flex items-center gap-4 px-6 py-4 bg-white rounded-3xl shadow-sm border border-slate-100 min-w-[280px]">
+                <div class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors bg-slate-200" id="switchBg">
+                    <span class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1 shadow-md" id="switchDot"></span>
+                </div>
+                <div class="flex flex-col">
+                    <div class="flex items-center gap-2">
+                        <span id="led" class="w-3 h-3 bg-amber-500 rounded-full led-blink"></span>
+                        <span id="statusLabel" class="text-xs font-black uppercase tracking-widest text-slate-400">Verificando...</span>
+                    </div>
+                    <span id="statusSubtext" class="text-sm font-medium text-slate-600 italic">Esperando conexión</span>
                 </div>
             </div>
+        </header>
 
-            <div class="glass-card p-6 rounded-2xl shadow-xl flex flex-col items-center justify-center">
-                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Indice de Calidad</h3>
-                <canvas id="qualityChart" width="200" height="200"></canvas>
-                <div id="complianceLabel" class="text-3xl font-black mt-4 text-slate-800">0%</div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="glass p-6 rounded-3xl border border-white shadow-xl flex flex-col items-center">
+                <canvas id="qualityChart" width="150" height="150"></canvas>
+                <h2 id="qualityScore" class="text-3xl font-black mt-4 text-blue-600">0%</h2>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-tighter">Calidad del Archivo</p>
+            </div>
+            <div class="flex flex-col gap-4">
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                    <p class="text-xs font-bold text-slate-400 uppercase">Leídos</p>
+                    <h3 id="totalRows" class="text-3xl font-bold">0</h3>
+                </div>
+                <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                    <p class="text-xs font-bold text-red-400 uppercase">Inconsistencias</p>
+                    <h3 id="totalErrors" class="text-3xl font-bold text-red-600">0</h3>
+                </div>
+            </div>
+            <div class="flex flex-col justify-center gap-4">
+                <button onclick="exportErrors()" id="btnExport" disabled class="bg-slate-900 text-white p-6 rounded-3xl font-bold hover:bg-blue-600 transition-all opacity-20 cursor-not-allowed">
+                    <i class="fa-solid fa-download mr-2"></i> Exportar Informe
+                </button>
             </div>
         </div>
 
-        <div id="statsGrid" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 hidden">
-            <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
-                <p class="text-xs font-bold text-slate-400 uppercase">Procesados</p>
-                <p id="totalCount" class="text-2xl font-bold">0</p>
-            </div>
-            <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
-                <p class="text-xs font-bold text-red-400 uppercase">Con Error</p>
-                <p id="errorCount" class="text-2xl font-bold text-red-600">0</p>
-            </div>
-            <div class="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
-                <p class="text-xs font-bold text-blue-400 uppercase">Validaciones</p>
-                <p class="text-2xl font-bold">125 Cols</p>
-            </div>
-            <button onclick="exportToExcel()" class="bg-slate-900 text-white p-5 rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2 font-bold shadow-lg shadow-slate-200">
-                <i class="fa-solid fa-file-export"></i> Descargar Informe
-            </button>
+        <div id="dropZone" class="opacity-30 pointer-events-none transition-all duration-500 bg-white border-2 border-dashed border-slate-200 rounded-3xl p-16 text-center mb-10 group hover:border-blue-400">
+            <input type="file" id="fileInput" class="hidden" accept=".csv">
+            <i class="fa-solid fa-cloud-arrow-up text-5xl text-blue-600 mb-4 group-hover:scale-110 transition-transform"></i>
+            <h3 class="text-xl font-bold">Cargar Reporte Mensual</h3>
+            <p class="text-slate-400 mt-2">Arrastre aquí el archivo CSV (Latin-1/UTF-8)</p>
         </div>
 
-        <div id="resultsTable" class="bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden hidden">
-            <div class="p-6 border-bottom border-slate-100 flex justify-between items-center bg-slate-50">
-                <h3 class="font-bold text-slate-700">Inconsistencias Detectadas</h3>
-                <input type="text" id="filterInput" placeholder="Filtrar por ID de Paciente..." class="px-4 py-2 border rounded-lg text-sm w-64 outline-none focus:ring-2 focus:ring-blue-500">
+        <div id="resultsArea" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">Detalle de Hallazgos</h3>
+                <input type="text" id="searchInput" placeholder="Buscar por identificación..." class="px-6 py-3 rounded-2xl border border-slate-200 outline-none focus:ring-4 focus:ring-blue-100 transition-all w-80">
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="bg-slate-100 text-slate-500 text-xs font-bold uppercase">
+            <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-slate-900 text-white text-xs uppercase italic tracking-widest">
                         <tr>
-                            <th class="px-6 py-4 text-left">Fila</th>
-                            <th class="px-6 py-4 text-left">Identificación</th>
-                            <th class="px-6 py-4 text-left">Hallazgos</th>
+                            <th class="p-6">Fila</th>
+                            <th class="p-6">Identificación</th>
+                            <th class="p-6">Inconsistencias</th>
                         </tr>
                     </thead>
-                    <tbody id="errorBody" class="divide-y divide-slate-100"></tbody>
+                    <tbody id="tableBody" class="divide-y divide-slate-100"></tbody>
                 </table>
             </div>
         </div>
-    </main>
+    </div>
 
-    <div id="loader" class="fixed inset-0 bg-slate-900/80 backdrop-blur-md hidden z-50 flex flex-col items-center justify-center text-white">
+    <div id="loader" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex flex-col items-center justify-center text-white">
         <div class="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p class="text-xl font-bold animate-pulse">Analizando integridad de datos...</p>
+        <p class="font-bold text-xl">Analizando integridad de datos...</p>
     </div>
 
     <script>
-        const API_URL = "https://api-ejecutor-python.onrender.com/validar";
-        let globalErrors = [];
-        let chartInstance = null;
+        const API_URL = "https://api-ejecutor-python.onrender.com"; // Sin /validar aquí
+        let fullData = [];
+        let chart = null;
 
-        // Init Chart
-        const ctx = document.getElementById('qualityChart').getContext('2d');
-        function updateChart(success, errors) {
-            if(chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    datasets: [{
-                        data: [success, errors],
-                        backgroundColor: ['#3b82f6', '#ef4444'],
-                        borderWidth: 0
-                    }]
-                },
-                options: { cutout: '80%', plugins: { legend: { display: false } } }
-            });
+        // --- Lógica del Semáforo ---
+        async function checkApi() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                if (response.ok) {
+                    setApiState(true);
+                } else {
+                    setApiState(false);
+                    setTimeout(checkApi, 5000);
+                }
+            } catch {
+                setApiState(false);
+                setTimeout(checkApi, 5000);
+            }
         }
-        updateChart(1, 0);
 
-        // Upload Logic
+        function setApiState(isOnline) {
+            const led = document.getElementById('led');
+            const statusLabel = document.getElementById('statusLabel');
+            const subtext = document.getElementById('statusSubtext');
+            const sBg = document.getElementById('switchBg');
+            const sDot = document.getElementById('switchDot');
+            const drop = document.getElementById('dropZone');
+
+            if (isOnline) {
+                led.className = "w-3 h-3 bg-green-500 rounded-full shadow-[0_0_12px_#22c55e]";
+                statusLabel.innerText = "API ONLINE";
+                statusLabel.className = "text-xs font-black uppercase tracking-widest text-green-600";
+                subtext.innerText = "Motor listo para procesar";
+                sBg.className = "relative inline-flex h-6 w-11 items-center rounded-full transition-colors bg-green-500";
+                sDot.className = "inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6 shadow-md";
+                drop.className = "bg-white border-2 border-dashed border-blue-200 rounded-3xl p-16 text-center mb-10 group hover:border-blue-400 cursor-pointer shadow-sm opacity-100";
+                drop.style.pointerEvents = "auto";
+            } else {
+                led.className = "w-3 h-3 bg-amber-500 rounded-full led-blink";
+                statusLabel.innerText = "DESPERTANDO...";
+                subtext.innerText = "Render está iniciando el motor";
+                drop.style.pointerEvents = "none";
+            }
+        }
+
+        // --- Lógica de Procesamiento ---
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
-
         dropZone.onclick = () => fileInput.click();
-        fileInput.onchange = (e) => handleUpload(e.target.files[0]);
+        fileInput.onchange = (e) => handleFile(e.target.files[0]);
 
-        async function handleUpload(file) {
+        async function handleFile(file) {
             if (!file) return;
             document.getElementById('loader').classList.remove('hidden');
-            
             const formData = new FormData();
             formData.append('file', file);
 
             try {
-                const response = await fetch(API_URL, { method: 'POST', body: formData });
-                const data = await response.json();
-                processResults(data);
+                const res = await fetch(`${API_URL}/validar`, { method: 'POST', body: formData });
+                const data = await res.json();
+                renderUI(data);
             } catch (err) {
-                alert("Error de conexión: " + err.message);
+                alert("Error crítico: El motor se apagó. Espere el semáforo verde.");
             } finally {
                 document.getElementById('loader').classList.add('hidden');
             }
         }
 
-        function processResults(data) {
-            globalErrors = data.detalles;
-            document.getElementById('statsGrid').classList.remove('hidden');
-            document.getElementById('resultsTable').classList.remove('hidden');
-            
-            document.getElementById('totalCount').innerText = data.registros_leidos;
-            document.getElementById('errorCount').innerText = data.registros_con_error;
+        function renderUI(data) {
+            fullData = data.detalles;
+            document.getElementById('resultsArea').classList.remove('hidden');
+            document.getElementById('totalRows').innerText = data.registros_leidos;
+            document.getElementById('totalErrors').innerText = data.registros_con_error;
             
             const score = ((data.registros_leidos - data.registros_con_error) / data.registros_leidos * 100).toFixed(1);
-            document.getElementById('complianceLabel').innerText = score + "%";
+            document.getElementById('qualityScore').innerText = score + "%";
             
+            // Habilitar exportación
+            const btn = document.getElementById('btnExport');
+            btn.disabled = false;
+            btn.className = "bg-slate-900 text-white p-6 rounded-3xl font-bold hover:bg-blue-600 transition-all shadow-lg shadow-slate-200";
+
             updateChart(data.registros_leidos - data.registros_con_error, data.registros_con_error);
-            renderTable(globalErrors);
+            showTable(fullData);
         }
 
-        function renderTable(items) {
-            const tbody = document.getElementById('errorBody');
-            tbody.innerHTML = items.map(item => `
+        function showTable(items) {
+            const body = document.getElementById('tableBody');
+            body.innerHTML = items.map(i => `
                 <tr class="hover:bg-blue-50/50 transition-colors">
-                    <td class="px-6 py-4 font-mono text-slate-400 text-sm">#${item.fila}</td>
-                    <td class="px-6 py-4 font-bold text-slate-700">${item.identificacion}</td>
-                    <td class="px-6 py-4">
-                        <div class="space-y-2">
-                            ${item.errores.map(e => `
-                                <div class="flex items-center gap-2 text-xs font-medium text-red-700 bg-red-50 p-2 rounded-lg border border-red-100">
-                                    <i class="fa-solid fa-circle-exclamation text-red-400"></i> ${e}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </td>
+                    <td class="p-6 text-slate-400 font-mono text-xs">FILA ${i.fila}</td>
+                    <td class="p-6 font-bold text-slate-700">${i.identificacion}</td>
+                    <td class="p-6 italic text-sm text-red-600">${i.errores.join("<br>")}</td>
                 </tr>
             `).join('');
         }
 
-        function exportToExcel() {
-            const ws = XLSX.utils.json_to_sheet(globalErrors.map(e => ({
-                Fila: e.fila,
-                Paciente: e.identificacion,
-                Hallazgos: e.errores.join(" | ")
-            })));
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Errores");
-            XLSX.writeFile(wb, "Reporte_Dusakawi_Inconsistencias.xlsx");
+        function updateChart(ok, bad) {
+            if(chart) chart.destroy();
+            chart = new Chart(document.getElementById('qualityChart'), {
+                type: 'doughnut',
+                data: { datasets: [{ data: [ok, bad], backgroundColor: ['#3b82f6', '#ef4444'], borderWidth: 0 }] },
+                options: { cutout: '80%', plugins: { legend: { display: false } } }
+            });
         }
 
-        document.getElementById('filterInput').oninput = (e) => {
-            const val = e.target.value.toLowerCase();
-            renderTable(globalErrors.filter(i => i.identificacion.toString().toLowerCase().includes(val)));
-        };
+        function exportErrors() {
+            const ws = XLSX.utils.json_to_sheet(fullData.map(i => ({ Fila: i.fila, ID: i.identificacion, Errores: i.errores.join(" | ") })));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Hallazgos");
+            XLSX.writeFile(wb, "Reporte_Calidad_Dusakawi.xlsx");
+        }
+
+        checkApi();
     </script>
 </body>
 </html>
