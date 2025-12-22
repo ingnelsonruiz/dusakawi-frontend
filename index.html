@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dusakawi Auditor Pro | Resolución 4505</title>
+    <title>Dusakawi Auditor Pro v3.0 | Inteligencia de Datos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         
         :root {
             --primary: #2563eb;
             --success: #10b981;
             --danger: #ef4444;
+            --warning: #f59e0b;
             --bg: #f8fafc;
         }
 
@@ -24,118 +25,197 @@
             scroll-behavior: smooth;
         }
 
-        .glass {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        /* Glassmorphism Pro */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
         }
 
-        .custom-shadow {
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+        /* Animaciones avanzadas */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        .error-shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
         }
 
-        .dropzone-active {
-            border-color: var(--primary);
-            background-color: #eff6ff;
-            transform: scale(1.02);
+        /* Indicador de carga circular con gradiente */
+        .loader-ring {
+            border-radius: 50%;
+            mask: radial-gradient(farthest-side, transparent calc(100% - 8px), #000 0);
+            background: conic-gradient(from 0deg, transparent 0deg, var(--primary) 360deg);
         }
 
-        @keyframes pulse-soft {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(0.95); }
-        }
-        .animate-status { animation: pulse-soft 3s infinite; }
-
-        /* Estilo para el scrollbar profesional */
-        ::-webkit-scrollbar { width: 8px; }
+        /* Personalización de scrollbars */
+        ::-webkit-scrollbar { width: 10px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { 
+            background: #cbd5e1; 
+            border-radius: 10px; 
+            border: 2px solid #f1f5f9;
+        }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-12">
+<body class="min-h-screen p-4 lg:p-12 selection:bg-blue-100">
 
     <div class="max-w-7xl mx-auto">
-        <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 bg-white p-8 rounded-[3rem] custom-shadow border border-slate-100">
-            <div class="flex items-center gap-5">
-                <div class="bg-blue-600 text-white w-16 h-16 rounded-[1.5rem] flex items-center justify-center shadow-xl shadow-blue-200">
-                    <i class="fa-solid fa-hospital-user text-3xl"></i>
+        <header class="flex flex-col lg:flex-row items-center justify-between gap-8 mb-16 bg-white p-10 rounded-[3.5rem] shadow-2xl shadow-blue-100/50 border border-slate-100 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-50"></div>
+            
+            <div class="flex items-center gap-6 relative z-10">
+                <div class="group cursor-pointer relative">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-[2rem] blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
+                    <div class="bg-blue-600 text-white w-20 h-20 rounded-[1.8rem] flex items-center justify-center shadow-2xl relative">
+                        <i class="fa-solid fa-microchip text-4xl group-hover:rotate-12 transition-transform"></i>
+                    </div>
                 </div>
                 <div>
-                    <h1 class="text-4xl font-black tracking-tighter text-slate-900 flex items-center gap-2">
-                        DUSAKAWI <span class="text-blue-600 italic">AUDITOR</span>
-                        <span class="bg-blue-100 text-blue-600 text-[10px] px-2 py-1 rounded-md tracking-widest font-bold uppercase">Pro v2.0</span>
+                    <h1 class="text-5xl font-extrabold tracking-tighter text-slate-900 leading-none mb-2">
+                        DUSAKAWI <span class="text-blue-600">AUDITOR</span>
                     </h1>
-                    <p class="text-slate-400 font-bold text-xs uppercase tracking-[0.2em]">
-                        Motor de Inteligencia Técnica - Resolución 4505
-                    </p>
+                    <div class="flex items-center gap-3">
+                        <span class="bg-blue-600 text-white text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-widest">Enterprise v3.0</span>
+                        <div class="h-1 w-1 rounded-full bg-slate-300"></div>
+                        <p class="text-slate-400 font-bold text-[11px] uppercase tracking-[0.2em] italic">Deep Scan Resolution 4505</p>
+                    </div>
                 </div>
             </div>
 
-            <div id="statusPill" class="flex items-center gap-4 bg-slate-50 px-6 py-3 rounded-2xl border border-slate-200 shadow-inner group transition-all">
-                <div class="relative flex h-3 w-3">
+            <div id="statusPill" class="flex items-center gap-5 bg-slate-50 px-8 py-4 rounded-[2rem] border border-slate-200/60 shadow-inner group relative z-10">
+                <div class="relative flex h-4 w-4">
                     <span id="statusPing" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-400 opacity-75"></span>
-                    <span id="statusDot" class="relative inline-flex rounded-full h-3 w-3 bg-slate-400"></span>
+                    <span id="statusDot" class="relative inline-flex rounded-full h-4 w-4 bg-slate-400"></span>
                 </div>
                 <div class="flex flex-col">
-                    <span id="statusText" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Enlace API: Desconectado</span>
-                    <span id="statusTimer" class="text-[9px] text-slate-400 italic font-medium">Reintentando conexión...</span>
+                    <span id="statusText" class="text-[11px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Cerebro AI: Desconectado</span>
+                    <span id="statusTimer" class="text-[10px] text-slate-400 font-medium italic">Estableciendo enlace con backend...</span>
                 </div>
             </div>
         </header>
 
-        <div id="dashboard" class="hidden grid grid-cols-1 md:grid-cols-4 gap-6 mb-12 animate-fade-in">
-            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 custom-shadow hover:translate-y-[-5px] transition-transform">
-                <div class="bg-blue-50 w-10 h-10 rounded-xl flex items-center justify-center mb-4"><i class="fa-solid fa-users text-blue-600"></i></div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1 tracking-widest">Población Total</p>
+        <div id="dashboard" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16 animate-slide-up">
+            <div class="glass-card p-8 rounded-[2.5rem] hover:translate-y-[-8px] transition-all duration-500 group border-l-4 border-l-blue-500">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="bg-blue-50 w-12 h-12 rounded-2xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-users-viewfinder text-xl"></i>
+                    </div>
+                    <span class="text-[10px] font-black text-blue-300 uppercase tracking-widest">Filtro 01</span>
+                </div>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Población Total</p>
                 <p id="statTotal" class="text-4xl font-black text-slate-800 tracking-tighter">0</p>
             </div>
-            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 custom-shadow hover:translate-y-[-5px] transition-transform">
-                <div class="bg-indigo-50 w-10 h-10 rounded-xl flex items-center justify-center mb-4"><i class="fa-solid fa-table-columns text-indigo-600"></i></div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1 tracking-widest">Columnas Mapeadas</p>
+
+            <div class="glass-card p-8 rounded-[2.5rem] hover:translate-y-[-8px] transition-all duration-500 group border-l-4 border-l-indigo-500">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="bg-indigo-50 w-12 h-12 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-table-list text-xl"></i>
+                    </div>
+                    <span class="text-[10px] font-black text-indigo-300 uppercase tracking-widest">Estructura</span>
+                </div>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Columnas Mapeadas</p>
                 <p id="statCols" class="text-4xl font-black text-indigo-600 tracking-tighter">0</p>
             </div>
-            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 custom-shadow border-l-8 border-l-red-500 hover:translate-y-[-5px] transition-transform text-red-900">
-                <div class="bg-red-50 w-10 h-10 rounded-xl flex items-center justify-center mb-4"><i class="fa-solid fa-triangle-exclamation text-red-600"></i></div>
-                <p class="text-[10px] font-bold text-slate-400 uppercase mb-1 tracking-widest text-red-400">Pacientes Observados</p>
-                <p id="statErrs" class="text-4xl font-black tracking-tighter text-red-600">0</p>
+
+            <div class="glass-card p-8 rounded-[2.5rem] hover:translate-y-[-8px] transition-all duration-500 group border-l-4 border-l-red-500 bg-red-50/20">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="bg-red-100 w-12 h-12 rounded-2xl flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors">
+                        <i class="fa-solid fa-radiation text-xl"></i>
+                    </div>
+                    <span class="text-[10px] font-black text-red-300 uppercase tracking-widest">Hallazgos</span>
+                </div>
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Registros Observados</p>
+                <p id="statErrs" class="text-4xl font-black text-red-600 tracking-tighter">0</p>
             </div>
-            <button onclick="exportarErrores()" class="bg-slate-900 hover:bg-emerald-600 text-white p-8 rounded-[2.5rem] transition-all flex flex-col items-center justify-center gap-2 group shadow-xl shadow-slate-200">
-                <i class="fa-solid fa-file-export text-3xl mb-1 group-hover:scale-110 transition-transform"></i>
-                <span class="text-[11px] font-extrabold uppercase tracking-[0.2em]">Exportar Hallazgos</span>
+
+            <button onclick="exportarErrores()" class="group relative bg-slate-900 rounded-[2.5rem] p-1 overflow-hidden transition-all hover:scale-[1.02] active:scale-95 shadow-2xl">
+                <div class="absolute inset-0 bg-gradient-to-br from-emerald-500 to-teal-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="relative bg-white/5 h-full w-full rounded-[2.3rem] flex flex-col items-center justify-center gap-3 text-white">
+                    <i class="fa-solid fa-file-excel text-3xl group-hover:bounce transition-transform"></i>
+                    <span class="text-[12px] font-black uppercase tracking-[0.2em]">Descargar Auditoría</span>
+                </div>
             </button>
         </div>
 
-        <div id="dropZone" 
-             class="bg-white border-4 border-dashed border-slate-200 rounded-[4rem] p-24 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all group mb-12 custom-shadow">
-            <input type="file" id="fileInput" class="hidden" accept=".csv">
-            
-            <div class="bg-slate-50 w-28 h-28 rounded-full flex items-center justify-center mx-auto mb-8 group-hover:bg-blue-100 transition-all group-hover:rotate-6 shadow-inner">
-                <i class="fa-solid fa-cloud-arrow-up text-5xl text-slate-300 group-hover:text-blue-500 transition-all"></i>
-            </div>
-            
-            <h2 class="text-3xl font-black text-slate-800 mb-3 tracking-tighter">Auditoría Masiva Dusakawi</h2>
-            <p class="text-slate-400 max-w-lg mx-auto text-base font-medium leading-relaxed italic">
-                Suelte su archivo CSV aquí. El sistema identificará el número de columna (1-125) y validará la integridad de los datos reportados.
-            </p>
-            <div class="mt-8 flex justify-center gap-4">
-                <span class="text-[10px] font-black text-slate-400 uppercase border border-slate-200 px-3 py-1 rounded-lg italic">Separador: Punto y Coma (;)</span>
-                <span class="text-[10px] font-black text-slate-400 uppercase border border-slate-200 px-3 py-1 rounded-lg italic">Encoding: Latin-1</span>
-            </div>
-        </div>
-
-        <div id="loader" class="hidden py-32 text-center">
-            <div class="relative inline-block">
-                <div class="w-24 h-24 border-8 border-slate-100 border-t-blue-600 rounded-full animate-spin"></div>
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <i class="fa-solid fa-bolt text-blue-600 text-2xl animate-pulse"></i>
+        <div id="dropZone" class="group relative animate-slide-up">
+            <div class="absolute -inset-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-[4.5rem] blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+            <div class="relative bg-white border-4 border-dashed border-slate-200 rounded-[4rem] p-24 text-center cursor-pointer hover:border-blue-400 transition-all bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed">
+                <input type="file" id="fileInput" class="hidden" accept=".csv">
+                
+                <div class="mb-10 relative inline-block">
+                    <div class="absolute inset-0 bg-blue-400 rounded-full blur-2xl opacity-20 group-hover:opacity-40 animate-pulse"></div>
+                    <div class="bg-slate-50 w-32 h-32 rounded-full flex items-center justify-center mx-auto relative border border-slate-100 group-hover:scale-110 transition-transform shadow-inner">
+                        <i class="fa-solid fa-cloud-arrow-up text-6xl text-slate-300 group-hover:text-blue-600 transition-all"></i>
+                    </div>
+                </div>
+                
+                <h2 class="text-4xl font-black text-slate-800 mb-4 tracking-tighter">Cargar Reporte 4505</h2>
+                <p class="text-slate-400 max-w-xl mx-auto text-lg font-medium leading-relaxed italic mb-8">
+                    El sistema realizará una <span class="text-blue-600 font-bold underline">Anatomía Estructural</span> automática para detectar desbordamientos de columnas antes de la auditoría clínica.
+                </p>
+                
+                <div class="flex flex-wrap justify-center gap-4">
+                    <div class="bg-white border border-slate-200 px-6 py-2 rounded-2xl flex items-center gap-3 shadow-sm">
+                        <i class="fa-solid fa-table-columns text-blue-500"></i>
+                        <span class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Estándar: 125 Cols</span>
+                    </div>
+                    <div class="bg-white border border-slate-200 px-6 py-2 rounded-2xl flex items-center gap-3 shadow-sm">
+                        <i class="fa-solid fa-font text-blue-500"></i>
+                        <span class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Enconding: Latin-1</span>
+                    </div>
+                    <div class="bg-white border border-slate-200 px-6 py-2 rounded-2xl flex items-center gap-3 shadow-sm">
+                        <i class="fa-solid fa-bolt text-amber-500"></i>
+                        <span class="text-[11px] font-black text-slate-500 uppercase tracking-widest">Pre-Audit Activo</span>
+                    </div>
                 </div>
             </div>
-            <h3 class="mt-10 font-black text-slate-800 uppercase tracking-[0.3em] text-lg italic">Analizando 125 Columnas...</h3>
-            <p class="text-slate-400 font-medium mt-3 italic animate-pulse">Calculando consistencia clínica e IMC para cada registro</p>
         </div>
 
-        <div id="resultsContainer" class="space-y-10 mb-20"></div>
+        <div id="structuralErrorCard" class="hidden mt-8 animate-slide-up error-shake">
+            <div class="bg-white border-2 border-red-200 rounded-[3rem] overflow-hidden shadow-2xl shadow-red-100">
+                <div class="bg-red-600 p-8 flex items-center justify-between text-white">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-white/20 p-4 rounded-2xl backdrop-blur-md">
+                            <i class="fa-solid fa-triangle-exclamation text-3xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-black uppercase tracking-tighter">Error de Anatomía Estructural</h3>
+                            <p class="text-red-100 text-xs font-bold italic">Se detectaron filas que rompen el estándar de la Resolución 4505</p>
+                        </div>
+                    </div>
+                    <button onclick="location.reload()" class="bg-white text-red-600 px-6 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-red-50 transition-colors">
+                        Reintentar Carga
+                    </button>
+                </div>
+                <div class="p-10">
+                    <div id="structuralErrorDetails" class="space-y-4 max-h-[400px] overflow-y-auto pr-4">
+                        </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="loader" class="hidden py-40 text-center animate-pulse">
+            <div class="relative inline-block mb-10">
+                <div class="w-32 h-32 border-8 border-slate-100 rounded-full"></div>
+                <div class="absolute inset-0 w-32 h-32 loader-ring animate-spin"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <i class="fa-solid fa-dna text-blue-600 text-3xl animate-bounce"></i>
+                </div>
+            </div>
+            <h3 class="font-black text-slate-800 uppercase tracking-[0.4em] text-2xl italic mb-3">Escaneando Genoma Clínico</h3>
+            <p id="loaderPhase" class="text-slate-400 font-bold italic animate-pulse">Fase: Validando consistencia de 125 columnas...</p>
+        </div>
+
+        <div id="resultsContainer" class="space-y-12 mb-32 pt-10 border-t border-slate-100"></div>
     </div>
 
     <script>
@@ -145,7 +225,7 @@
         let logsParaExportar = [];
         let mapaColumnasUsuario = [];
 
-        // 1. INICIALIZADOR DE CONEXIÓN (SMART POLLING)
+        // 1. SMART POLLING & HEALTH CHECK
         async function conectar() {
             try {
                 const response = await fetch(`${API_URL}/health`);
@@ -154,40 +234,96 @@
                     const statusPing = document.getElementById('statusPing');
                     const statusText = document.getElementById('statusText');
                     
-                    statusDot.className = "relative inline-flex rounded-full h-3 w-3 bg-emerald-500";
+                    statusDot.className = "relative inline-flex rounded-full h-4 w-4 bg-emerald-500";
                     statusPing.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
-                    statusText.innerText = "Enlace API: Operativo";
-                    statusText.className = "text-[10px] font-black text-emerald-600 uppercase tracking-widest";
-                    document.getElementById('statusTimer').innerText = "Sistema de Auditoría Sincronizado";
+                    statusText.innerText = "Cerebro AI: Online";
+                    statusText.className = "text-[11px] font-black text-emerald-600 uppercase tracking-widest";
+                    document.getElementById('statusTimer').innerText = "Motor de Auditoría en Alta Disponibilidad";
                 }
             } catch (error) {
-                setTimeout(conectar, 6000);
+                setTimeout(conectar, 5000);
             }
         }
 
-        // 2. GESTIÓN DE CARGA Y MAPEADOR LOCAL
+        // 2. SISTEMA DE PRE-AUDITORÍA ESTRUCTURAL (CLIENTE)
         dropZone.onclick = () => fileInput.click();
 
         fileInput.onchange = async (e) => {
             const file = e.target.files[0];
             if(!file) return;
 
-            // Lectura inicial para mapeo de columnas (No cambia el Backend)
-            const preReader = new FileReader();
-            preReader.onload = (evt) => {
-                const cabecera = evt.target.result.split('\n')[0];
-                const separador = cabecera.includes(';') ? ';' : ',';
-                mapaColumnasUsuario = cabecera.split(separador).map(c => c.trim().toUpperCase());
-                console.log("Mapeo detectado:", mapaColumnasUsuario.length, "columnas");
-            };
-            preReader.readAsText(file, 'ISO-8859-1');
-
-            // Preparar UI
-            document.getElementById('loader').classList.remove('hidden');
+            // Ocultar UI previa
             document.getElementById('dropZone').classList.add('hidden');
-            document.getElementById('dashboard').classList.add('hidden');
-            document.getElementById('resultsContainer').innerHTML = "";
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('loaderPhase').innerText = "Fase: Ejecutando Pre-Auditoría de Estructura...";
 
+            const reader = new FileReader();
+            reader.onload = async (evt) => {
+                const contenido = evt.target.result;
+                const lineas = contenido.split(/\r?\n/);
+                const erroresEstructurales = [];
+
+                // Validar línea por línea
+                lineas.forEach((linea, index) => {
+                    if(linea.trim() === "") return;
+                    
+                    const celdas = linea.split(';');
+                    const conteo = celdas.length;
+                    
+                    if(conteo !== 125) {
+                        erroresEstructurales.push({
+                            fila: index + 1,
+                            encontradas: conteo,
+                            id: celdas[6] || "Desconocido",
+                            contenido: linea.substring(0, 100) + "..."
+                        });
+                    }
+                });
+
+                if(erroresEstructurales.length > 0) {
+                    mostrarErrorEstructural(erroresEstructurales);
+                } else {
+                    // Si la estructura es perfecta, mapear y enviar al backend
+                    const cabecera = lineas[0];
+                    mapaColumnasUsuario = cabecera.split(';').map(c => c.trim().toUpperCase());
+                    enviarAlBackend(file);
+                }
+            };
+            reader.readAsText(file, 'ISO-8859-1');
+        };
+
+        // 3. RENDERIZADOR DE ERRORES DE ESTRUCTURA
+        function mostrarErrorEstructural(errores) {
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('structuralErrorCard').classList.remove('hidden');
+            const container = document.getElementById('structuralErrorDetails');
+            
+            container.innerHTML = errores.map(err => `
+                <div class="bg-red-50 border border-red-100 p-6 rounded-3xl flex items-center justify-between group hover:bg-white hover:border-red-300 transition-all">
+                    <div class="flex items-center gap-5">
+                        <div class="bg-red-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center font-black shadow-lg shadow-red-200">
+                            ${err.fila}
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-red-400 uppercase tracking-widest">Ubicación: Fila ${err.fila}</p>
+                            <h4 class="text-slate-800 font-bold">Columnas detectadas: <span class="text-red-600">${err.encontradas}</span> / Esperadas: 125</h4>
+                            <p class="text-xs text-slate-500 italic mt-1 font-medium">Doc. Paciente: ${err.id}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="bg-red-100 text-red-700 px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">
+                            Error de Segmentación
+                        </span>
+                        <p class="text-[9px] text-slate-400 mt-2 font-mono">Verifique el uso de ";" extra</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 4. COMUNICACIÓN CON BACKEND (AUDITORÍA CLÍNICA)
+        async function enviarAlBackend(file) {
+            document.getElementById('loaderPhase').innerText = "Fase: Ejecutando Auditoría Clínica Profunda...";
+            
             const formData = new FormData();
             formData.append('file', file);
 
@@ -198,21 +334,20 @@
                 });
                 const data = await response.json();
                 
-                if (!response.ok) throw new Error(data.detail || "Error estructural en el reporte.");
-
-                procesarRenderizado(data);
+                if (!response.ok) throw new Error(data.detail || "Falla estructural en el servidor.");
+                
+                renderizarResultados(data);
 
             } catch (err) {
-                alert("🔴 ALERTA DE ESTRUCTURA: " + err.message);
-                document.getElementById('dropZone').classList.remove('hidden');
+                alert("🔴 ERROR CRÍTICO: " + err.message);
+                location.reload();
             } finally {
                 document.getElementById('loader').classList.add('hidden');
-                fileInput.value = "";
             }
-        };
+        }
 
-        // 3. MOTOR DE RENDERIZADO DE RESULTADOS
-        function procesarRenderizado(data) {
+        // 5. MOTOR DE RENDERIZADO DE RESULTADOS (V3.0)
+        function renderizarResultados(data) {
             document.getElementById('dashboard').classList.remove('hidden');
             document.getElementById('statTotal').innerText = data.resumen.total_filas;
             document.getElementById('statCols').innerText = data.resumen.columnas_leidas;
@@ -223,85 +358,86 @@
 
             if(data.detalles.length === 0) {
                 container.innerHTML = `
-                    <div class="text-center py-20 bg-emerald-50 rounded-[4rem] border-4 border-dashed border-emerald-100 animate-pulse">
-                        <i class="fa-solid fa-shield-heart text-7xl text-emerald-400 mb-6"></i>
-                        <h3 class="text-3xl font-black text-emerald-900">REPORTE DE CALIDAD TOTAL</h3>
-                        <p class="text-emerald-600 font-bold italic">No se detectaron hallazgos técnicos en las 125 columnas.</p>
+                    <div class="text-center py-32 bg-emerald-50 rounded-[5rem] border-4 border-dashed border-emerald-100 animate-slide-up">
+                        <div class="bg-white w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-200">
+                            <i class="fa-solid fa-shield-check text-5xl text-emerald-500"></i>
+                        </div>
+                        <h3 class="text-4xl font-black text-emerald-900 mb-2 tracking-tighter uppercase">Calidad de Datos Perfecta</h3>
+                        <p class="text-emerald-600 font-bold italic text-lg">No se hallaron discrepancias técnicas en los 125 campos auditados.</p>
                     </div>`;
                 return;
             }
 
-            container.innerHTML = data.detalles.map(paciente => {
-                return `
-                <article class="bg-white rounded-[3.5rem] border border-slate-200 overflow-hidden custom-shadow hover:shadow-2xl transition-all duration-500">
-                    <div class="bg-slate-900 px-10 py-7 flex flex-wrap justify-between items-center gap-6">
-                        <div class="flex items-center gap-5">
-                            <div class="bg-white/10 w-14 h-14 rounded-2xl flex items-center justify-center text-white backdrop-blur-md">
-                                <i class="fa-solid fa-id-card-clip text-xl"></i>
+            container.innerHTML = data.detalles.map(paciente => `
+                <article class="bg-white rounded-[4rem] border border-slate-200 overflow-hidden shadow-2xl hover:shadow-blue-900/10 transition-all duration-700 animate-slide-up">
+                    <div class="bg-slate-900 px-12 py-8 flex flex-wrap justify-between items-center gap-8 relative overflow-hidden">
+                        <div class="absolute left-0 top-0 w-2 h-full bg-blue-600"></div>
+                        <div class="flex items-center gap-6 relative z-10">
+                            <div class="bg-white/10 w-16 h-16 rounded-3xl flex items-center justify-center text-white backdrop-blur-xl border border-white/10">
+                                <i class="fa-solid fa-id-card text-2xl"></i>
                             </div>
                             <div>
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Documento Paciente</p>
-                                <h3 class="text-2xl font-black text-white tracking-tighter">${paciente.identificacion}</h3>
+                                <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mb-1 italic">Identificación Paciente</p>
+                                <h3 class="text-3xl font-black text-white tracking-tighter">${paciente.identificacion}</h3>
                             </div>
                         </div>
-                        <div class="flex items-center gap-4">
+                        
+                        <div class="flex items-center gap-6 relative z-10">
                             <div class="text-right hidden sm:block">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase">Localización Física</p>
-                                <p class="text-white font-bold italic">Fila Excel: ${paciente.fila}</p>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Fila en Archivo</p>
+                                <p class="text-blue-400 font-black text-xl italic">#${paciente.fila}</p>
                             </div>
-                            <div class="bg-red-500/10 text-red-400 border border-red-500/30 px-6 py-2 rounded-2xl font-black text-xs uppercase italic tracking-widest">
-                                ${paciente.errores.length} Hallazgos
+                            <div class="bg-red-500 text-white px-8 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-lg shadow-red-900/50">
+                                ${paciente.errores.length} Hallazgos Técnicos
                             </div>
                         </div>
                     </div>
                     
-                    <div class="p-10 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="p-12 grid grid-cols-1 md:grid-cols-2 gap-10">
                         ${paciente.errores.map(error => {
-                            // Cálculo dinámico del número de columna basado en el mapeo inicial
-                            const numeroColumna = mapaColumnasUsuario.indexOf(error.columna.toUpperCase()) + 1;
-                            
+                            const numCol = mapaColumnasUsuario.indexOf(error.columna.toUpperCase()) + 1;
                             return `
-                            <div class="bg-slate-50 border border-slate-100 p-8 rounded-[2.5rem] relative overflow-hidden group hover:bg-white hover:border-blue-200 transition-all duration-300">
-                                <div class="absolute top-0 left-0 w-2 h-full bg-red-500 opacity-20 group-hover:opacity-100 transition-opacity"></div>
-                                
+                            <div class="bg-slate-50 border border-slate-100 p-8 rounded-[3rem] relative group hover:bg-white hover:border-blue-300 transition-all duration-500 shadow-sm hover:shadow-xl">
                                 <div class="flex justify-between items-start mb-6">
-                                    <div class="flex flex-col">
-                                        <span class="bg-slate-200 text-slate-600 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest w-fit mb-2">
-                                            Columna ${numeroColumna > 0 ? numeroColumna : 'N/A'}
+                                    <div>
+                                        <span class="bg-slate-200 text-slate-600 px-4 py-1 rounded-xl text-[10px] font-black uppercase tracking-widest mb-3 inline-block">
+                                            Campo ${numCol > 0 ? numCol : 'N/A'}
                                         </span>
-                                        <h4 class="text-sm font-black text-slate-800 uppercase italic">${error.columna}</h4>
+                                        <h4 class="text-md font-black text-slate-800 uppercase italic tracking-tight leading-tight">${error.columna}</h4>
                                     </div>
-                                    <div class="bg-red-100 text-red-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-sm">
-                                        <i class="fa-solid fa-circle-exclamation"></i>
+                                    <div class="bg-red-100 text-red-600 w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner">
+                                        <i class="fa-solid fa-circle-exclamation text-lg"></i>
                                     </div>
                                 </div>
 
-                                <div class="bg-white p-5 rounded-2xl border border-slate-100 shadow-inner mb-5">
-                                    <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Dato Reportado:</p>
-                                    <span class="text-lg font-mono font-black text-red-600 italic">"${error.valor}"</span>
+                                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-inner mb-6">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 italic">Valor detectado:</p>
+                                    <span class="text-xl font-mono font-black text-red-600 break-words">"${error.valor}"</span>
                                 </div>
 
                                 <div class="space-y-4">
-                                    <div class="flex items-start gap-4">
-                                        <div class="mt-1"><i class="fa-solid fa-comment-medical text-slate-300 text-sm"></i></div>
-                                        <p class="text-sm text-slate-600 font-bold italic leading-snug">${error.mensaje}</p>
+                                    <div class="flex items-start gap-4 p-2">
+                                        <i class="fa-solid fa-microscope text-slate-400 mt-1"></i>
+                                        <p class="text-sm text-slate-600 font-bold italic leading-relaxed">${error.mensaje}</p>
                                     </div>
-                                    <div class="flex items-start gap-4 bg-blue-50/50 p-4 rounded-2xl border border-blue-100/50">
-                                        <div class="mt-1"><i class="fa-solid fa-hand-holding-medical text-blue-500 text-sm"></i></div>
-                                        <p class="text-xs text-blue-700 font-semibold italic"><b>Acción Técnica:</b> ${error.sugerencia}</p>
+                                    <div class="bg-blue-600 p-5 rounded-[1.8rem] text-white shadow-lg shadow-blue-200 transition-transform group-hover:scale-[1.02]">
+                                        <div class="flex items-center gap-3 mb-1">
+                                            <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>
+                                            <p class="text-[9px] font-black uppercase tracking-widest text-blue-100">Acción Requerida</p>
+                                        </div>
+                                        <p class="text-xs font-bold leading-snug">${error.sugerencia}</p>
                                     </div>
                                 </div>
                             </div>`;
                         }).join('')}
                     </div>
-                </article>`;
-            }).join('');
-            
-            // Auto-scroll al primer resultado
+                </article>
+            `).join('');
+
             container.scrollIntoView({ behavior: 'smooth' });
         }
 
-        // 4. SISTEMA DE EXPORTACIÓN INTELIGENTE (XLSX)
+        // 6. EXPORTACIÓN INTELIGENTE A EXCEL
         function exportarErrores() {
             if(logsParaExportar.length === 0) return;
             
@@ -311,24 +447,24 @@
                     const numCol = mapaColumnasUsuario.indexOf(e.columna.toUpperCase()) + 1;
                     rows.push({
                         "FILA_EXCEL": p.fila,
-                        "IDENTIFICACIÓN_PACIENTE": p.identificacion,
+                        "IDENTIFICACION": p.identificacion,
                         "N_COLUMNA": numCol,
-                        "NOMBRE_COLUMNA": e.columna,
-                        "VALOR_REPORTADO": e.valor,
+                        "CAMPO": e.columna,
+                        "VALOR_ERRONEO": e.valor,
                         "HALLAZGO_TECNICO": e.mensaje,
-                        "RECOMENDACION_AUDITORIA": e.sugerencia,
-                        "FECHA_AUDITORIA": new Date().toLocaleDateString()
+                        "RECOMENDACION": e.sugerencia,
+                        "AUDITOR": "Dusakawi AI Engine",
+                        "FECHA": new Date().toLocaleDateString()
                     });
                 });
             });
 
             const ws = XLSX.utils.json_to_sheet(rows);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Informe_Hallazgos");
-            XLSX.writeFile(wb, `Auditoria_4505_Dusakawi_${new Date().getTime()}.xlsx`);
+            XLSX.utils.book_append_sheet(wb, ws, "Reporte_4505");
+            XLSX.writeFile(wb, `Auditoria_Pro_v3_${new Date().getTime()}.xlsx`);
         }
 
-        // Ejecutar conexión inicial
         conectar();
     </script>
 </body>
