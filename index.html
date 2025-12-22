@@ -97,7 +97,7 @@
                     <span id="statusDot" class="relative inline-flex rounded-full h-4 w-4 bg-slate-400"></span>
                 </div>
                 <div class="flex flex-col">
-                    <span id="statusText" class="text-[11px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Cerebro AI: Desconectado</span>
+                    <span id="statusText" class="text-[11px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">API: Desconectado</span>
                     <span id="statusTimer" class="text-[10px] text-slate-400 font-medium italic">Estableciendo enlace con backend...</span>
                 </div>
             </div>
@@ -236,7 +236,7 @@
                     
                     statusDot.className = "relative inline-flex rounded-full h-4 w-4 bg-emerald-500";
                     statusPing.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
-                    statusText.innerText = "Cerebro AI: Online";
+                    statusText.innerText = "API: Online";
                     statusText.className = "text-[11px] font-black text-emerald-600 uppercase tracking-widest";
                     document.getElementById('statusTimer').innerText = "Motor de Auditoría en Alta Disponibilidad";
                 }
@@ -469,6 +469,7 @@
     </script>
 </body>
 </html>
+
 
 
 
